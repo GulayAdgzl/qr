@@ -56,5 +56,17 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
-    implementation("androidx.core:core-splasgscreen:1.0.1")
+    implementation("androidx.core:core-splashscreen:1.0.1")
+    // Activity Compose
+    implementation ("androidx.activity:activity-compose:1.10.0")
+
+    // CameraX
+    implementation ("androidx.camera:camera-camera2:1.4.1")
+    implementation ("androidx.camera:camera-lifecycle:1.4.1")
+    implementation ("androidx.camera:camera-view:1.4.1-alpha31")
+
+    // Zxing
+    implementation ("com.google.zxing:core:3.5.2")
+    implementation ("com.github.0xRahad:RioBottomNavigation:1.0.2")
+
 }
