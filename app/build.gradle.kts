@@ -49,6 +49,7 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.espresso.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -58,15 +59,12 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation("androidx.core:core-splashscreen:1.0.1")
     // Activity Compose
-    implementation ("androidx.activity:activity-compose:1.10.0")
+    implementation (libs.androidx.activity.compose)
 
-    // CameraX
-    implementation ("androidx.camera:camera-camera2:1.4.1")
-    implementation ("androidx.camera:camera-lifecycle:1.4.1")
-    implementation ("androidx.camera:camera-view:1.4.1-alpha31")
-
-    // Zxing
-    implementation ("com.google.zxing:core:3.5.2")
-    implementation ("com.github.0xRahad:RioBottomNavigation:1.0.2")
+    implementation (libs.core) // ZXing kütüphanesi
+    implementation (libs.androidx.camera.core)
+    implementation (libs.androidx.camera.camera2)
+    implementation (libs.androidx.camera.lifecycle)
+    implementation (libs.androidx.camera.view)
 
 }
