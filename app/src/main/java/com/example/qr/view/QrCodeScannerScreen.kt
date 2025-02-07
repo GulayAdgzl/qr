@@ -1,8 +1,16 @@
 package com.example.qr.view
 
 import android.content.Context
+import android.graphics.ImageDecoder
 import android.graphics.ImageFormat
+import android.net.Uri
+import android.os.Build
+import android.provider.MediaStore
 import android.util.Size
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -23,6 +31,7 @@ import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.FlipCameraAndroid
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 
@@ -43,6 +52,10 @@ import androidx.compose.ui.viewinterop.AndroidView
 
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.RGBLuminanceSource
+import com.google.zxing.common.HybridBinarizer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 @Composable
@@ -51,11 +64,40 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
     val lifecycleOwner = LocalContext.current as LifecycleOwner
     val cameraProviderFuture = remember { ProcessCameraProvider.getInstance(context) }
     val executor: ExecutorService = Executors.newSingleThreadExecutor()
-    
+    var camera by remember { mutableStateOf<Camera?>(null) }
     var flashEnabled by remember { mutableStateOf(false) }
     var cameraSelector by remember { mutableStateOf(CameraSelector.DEFAULT_BACK_CAMERA) }
     var previewView: PreviewView? by remember { mutableStateOf(null) }
-    
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedImageUri ->
+            try {
+                val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    val source = ImageDecoder.createSource(context.contentResolver, selectedImageUri)
+                    ImageDecoder.decodeBitmap(source)
+                } else {
+                    MediaStore.Images.Media.getBitmap(context.contentResolver, selectedImageUri)
+                }
+
+                val intArray = IntArray(bitmap.width * bitmap.height)
+                bitmap.getPixels(intArray, 0, bitmap.width, 0, 0, bitmap.width, bitmap.height)
+                val source = RGBLuminanceSource(bitmap.width, bitmap.height, intArray)
+                val binaryBitmap = BinaryBitmap(HybridBinarizer(source))
+
+                try {
+                    val result = MultiFormatReader().decode(binaryBitmap)
+                    onQrCodeScanned(result.text)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "QR kod bulunamadı!", Toast.LENGTH_SHORT).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Resim işlenirken hata oluştu!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         // Camera Preview
         AndroidView(
@@ -67,7 +109,7 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
             },
             modifier = Modifier.fillMaxSize()
         )
-        
+
         // Top Control Bar
         Row(
             modifier = Modifier
@@ -81,21 +123,16 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Gallery Button
-            IconButton(onClick = {
-                // TODO: Implement gallery picker
-            }) {
+            IconButton(onClick = { galleryLauncher.launch("image/*") }) {
                 Icon(
-                    imageVector = Icons.Default.Person,
+                    imageVector = Icons.Default.PhotoLibrary,
                     contentDescription = "Gallery",
                     tint = Color.White
                 )
             }
-            
-            // Flash Button
+
             IconButton(onClick = {
                 flashEnabled = !flashEnabled
-                // Rebind camera use case with new flash setting
                 bindCameraUseCases(
                     context,
                     lifecycleOwner,
@@ -113,15 +150,13 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
                     tint = Color.White
                 )
             }
-            
-            // Camera Flip Button
+
             IconButton(onClick = {
                 cameraSelector = if (cameraSelector == CameraSelector.DEFAULT_BACK_CAMERA) {
                     CameraSelector.DEFAULT_FRONT_CAMERA
                 } else {
                     CameraSelector.DEFAULT_BACK_CAMERA
                 }
-                // Rebind camera use case with new camera selector
                 bindCameraUseCases(
                     context,
                     lifecycleOwner,
@@ -140,14 +175,23 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
                 )
             }
         }
+
+        // Zoom Control
+        CameraZoomControl(
+            camera = camera,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 32.dp)
+        )
     }
-    
+
     DisposableEffect(Unit) {
         onDispose {
             executor.shutdown()
         }
     }
 }
+
 
 private fun bindCameraUseCases(
     context: Context,
@@ -161,13 +205,13 @@ private fun bindCameraUseCases(
 ) {
     try {
         val cameraProvider = cameraProviderFuture.get()
-        
+
         val preview = Preview.Builder()
             .build()
             .apply {
                 surfaceProvider = previewView?.surfaceProvider
             }
-        
+
         val imageAnalysis = ImageAnalysis.Builder()
             .setTargetResolution(Size(1280, 720))
             .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
@@ -177,7 +221,7 @@ private fun bindCameraUseCases(
                     onQrCodeScanned(result)
                 })
             }
-        
+
         // Set flash mode
         val camera = cameraProvider.bindToLifecycle(
             lifecycleOwner,
@@ -185,9 +229,9 @@ private fun bindCameraUseCases(
             preview,
             imageAnalysis
         )
-        
+
         camera.cameraControl.enableTorch(flashEnabled)
-        
+
     } catch (e: Exception) {
         e.printStackTrace()
     }
