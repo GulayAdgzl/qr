@@ -60,6 +60,7 @@ dependencies {
     implementation("androidx.core:core-splashscreen:1.0.1")
     // Activity Compose
     implementation (libs.androidx.activity.compose)
+    implementation (libs.androidx.material.icons.extended)
 
     implementation (libs.core) // ZXing kütüphanesi
     implementation (libs.androidx.camera.core)
