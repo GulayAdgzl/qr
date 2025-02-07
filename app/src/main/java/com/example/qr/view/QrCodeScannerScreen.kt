@@ -2,7 +2,6 @@ package com.example.qr.view
 
 import android.content.Context
 import android.graphics.ImageDecoder
-import android.graphics.ImageFormat
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
@@ -12,50 +11,54 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
-import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.FlipCameraAndroid
-import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PhotoLibrary
+import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
-
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
+import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 @Composable
@@ -176,12 +179,66 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
             }
         }
 
+
+
+        // Bottom Navigation Bar
+
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .background(Color(0xFF424242))
+                .padding(vertical = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Generate Button
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.clickable { /* Add Generate action here */ }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.QrCode2,
+                    contentDescription = "Generate QR",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "Generate",
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+
+            // History Button
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center,
+                modifier = Modifier.clickable { /* Add History action here */ }
+            ) {
+                Icon(
+                    imageVector = Icons.Default.History,
+                    contentDescription = "History",
+                    tint = Color.White,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = "History",
+                    color = Color.White,
+                    fontSize = 12.sp
+                )
+            }
+        }
+
         // Zoom Control
         CameraZoomControl(
             camera = camera,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 32.dp)
+                .padding(bottom = 96.dp)
         )
     }
 
@@ -190,8 +247,24 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
             executor.shutdown()
         }
     }
-}
 
+    LaunchedEffect(cameraProviderFuture, previewView) {
+        try {
+            bindCameraUseCases(
+                context,
+                lifecycleOwner,
+                cameraProviderFuture,
+                previewView,
+                cameraSelector,
+                flashEnabled,
+                executor,
+                onQrCodeScanned
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+}
 
 private fun bindCameraUseCases(
     context: Context,
@@ -205,6 +278,7 @@ private fun bindCameraUseCases(
 ) {
     try {
         val cameraProvider = cameraProviderFuture.get()
+        cameraProvider.unbindAll()
 
         val preview = Preview.Builder()
             .build()
@@ -222,7 +296,6 @@ private fun bindCameraUseCases(
                 })
             }
 
-        // Set flash mode
         val camera = cameraProvider.bindToLifecycle(
             lifecycleOwner,
             cameraSelector,
@@ -236,3 +309,9 @@ private fun bindCameraUseCases(
         e.printStackTrace()
     }
 }
+
+    private fun ByteBuffer.toByteArray(): ByteArray {
+        rewind()
+        return ByteArray(remaining()).also { get(it) }
+    }
+
