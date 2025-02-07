@@ -21,7 +21,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import com.example.qr.ui.theme.QrTheme
 import com.example.qr.view.QrCodeScannerScreen
-import com.example.qr.view.bottom.MainBottombar
 import com.example.qr.view.openUrlInBrowser
 
 class MainActivity : ComponentActivity() {
