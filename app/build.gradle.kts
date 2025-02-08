@@ -7,7 +7,14 @@ plugins {
 android {
     namespace = "com.example.qr"
     compileSdk = 35
-
+    signingConfigs {
+        create("config") {
+            keyAlias = "key0"
+            keyPassword = "123456"
+            storeFile = file("C:\\Users\\System Bilgisayar\\qr\\app\\qr.jks") // Corrected path
+            storePassword = "123456"
+        }
+    }
     defaultConfig {
         applicationId = "com.example.qr"
         minSdk = 24

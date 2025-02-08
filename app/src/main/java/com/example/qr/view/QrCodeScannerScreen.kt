@@ -16,28 +16,20 @@ import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlashOff
 import androidx.compose.material.icons.filled.FlashOn
 import androidx.compose.material.icons.filled.FlipCameraAndroid
-import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.PhotoLibrary
-import androidx.compose.material.icons.filled.QrCode2
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.LifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
@@ -183,55 +174,7 @@ fun QrCodeScannerScreen(onQrCodeScanned: (String) -> Unit) {
 
         // Bottom Navigation Bar
 
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .background(Color(0xFF424242))
-                .padding(vertical = 16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Generate Button
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.clickable { /* Add Generate action here */ }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.QrCode2,
-                    contentDescription = "Generate QR",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "Generate",
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
-            }
 
-            // History Button
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier.clickable { /* Add History action here */ }
-            ) {
-                Icon(
-                    imageVector = Icons.Default.History,
-                    contentDescription = "History",
-                    tint = Color.White,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "History",
-                    color = Color.White,
-                    fontSize = 12.sp
-                )
-            }
-        }
 
         // Zoom Control
         CameraZoomControl(
