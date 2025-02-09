@@ -52,7 +52,7 @@ fun CameraZoomControl(
             onValueChange = { newValue ->
                 sliderPosition = newValue
                 camera?.cameraControl?.setZoomRatio(
-                    lerp(minZoom, maxZoom, newValue)
+                   lerp(minZoom, maxZoom, newValue)
                 )
             },
             modifier = Modifier
